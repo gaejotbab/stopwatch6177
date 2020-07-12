@@ -123,20 +123,24 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
               mainAxisAlignment: MainAxisAlignment.center,
             ),
+            SizedBox(height: 20),
             Row(
               children: <Widget>[
                 RaisedButton(
                   child: Text('$buttonState'),
                   onPressed: _onButtonPressed,
                 ),
+                SizedBox(width: 10),
                 RaisedButton(
                   child: Text('초기화'),
                   onPressed: _onResetPressed,
                 )
               ],
               mainAxisAlignment: MainAxisAlignment.center,
+
             )
           ],
+          mainAxisAlignment: MainAxisAlignment.center,
         )
       ),
     );
