@@ -56,26 +56,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  var numberFormatter = new NumberFormat("00");
+  var twoZeroNumberFormatter = new NumberFormat("00");
 
   int hour = 0;
   int minute = 0;
   int second = 0;
+  int centisecond = 0;
 
   String buttonState = '시작';
   Stopwatch stopwatch = new Stopwatch();
   Timer timer;
 
   _MyHomePageState() {
-    timer = new Timer.periodic(new Duration(milliseconds: 100), _onTimer);
+    timer = new Timer.periodic(new Duration(milliseconds: 10), _onTimer);
   }
 
   void updateTime() {
     if (stopwatch.isRunning) {
-      var elapsedSeconds = (stopwatch.elapsedMilliseconds / 1000).toInt();
-      second = elapsedSeconds % 60;
-      minute = elapsedSeconds ~/ 60 % 60;
-      hour = elapsedSeconds ~/ 60 ~/ 60;
+      var elapsedMs = stopwatch.elapsedMilliseconds;
+      centisecond = elapsedMs % 1000 ~/ 10;
+      second = elapsedMs ~/ 1000 % 60;
+      minute = elapsedMs ~/ 1000 ~/ 60 % 60;
+      hour = elapsedMs ~/1000 ~/ 60 ~/ 60;
     }
   }
 
@@ -100,49 +102,58 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onResetPressed() {
     setState(() {
       stopwatch.reset();
-      hour = minute = second = 0;
+      hour = minute = second = centisecond = 0;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          children: <Widget>[
-            Row(
+    return
+      Container(
+        decoration: BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage("images/ssammu.jpeg"), fit: BoxFit.cover)),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            title: Text(widget.title),
+          ),
+          body: Center(
+            child: Column(
               children: <Widget>[
-                Text(numberFormatter.format(hour), textScaleFactor: 4),
-                Text(':', textScaleFactor: 4),
-                Text(numberFormatter.format(minute), textScaleFactor: 4),
-                Text(':', textScaleFactor: 4),
-                Text(numberFormatter.format(second), textScaleFactor: 4),
-              ],
-              mainAxisAlignment: MainAxisAlignment.center,
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: <Widget>[
-                RaisedButton(
-                  child: Text('$buttonState'),
-                  onPressed: _onButtonPressed,
+                Row(
+                  children: <Widget>[
+                    Text(twoZeroNumberFormatter.format(hour), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                    Text(':', textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                    Text(twoZeroNumberFormatter.format(minute), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                    Text(':', textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                    Text(twoZeroNumberFormatter.format(second), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                    Text('.', textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                    Text(twoZeroNumberFormatter.format(centisecond), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
                 ),
-                SizedBox(width: 10),
-                RaisedButton(
-                  child: Text('초기화'),
-                  onPressed: _onResetPressed,
+                SizedBox(height: 20),
+                Row(
+                  children: <Widget>[
+                    RaisedButton(
+                      child: Text('$buttonState'),
+                      onPressed: _onButtonPressed,
+                    ),
+                    SizedBox(width: 10),
+                    RaisedButton(
+                      child: Text('초기화'),
+                      onPressed: _onResetPressed,
+                    )
+                  ],
+                  mainAxisAlignment: MainAxisAlignment.center,
+
                 )
               ],
               mainAxisAlignment: MainAxisAlignment.center,
-
             )
-          ],
-          mainAxisAlignment: MainAxisAlignment.center,
+          )
         )
-      ),
-    );
+      );
   }
 }
