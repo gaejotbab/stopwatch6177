@@ -11,25 +11,12 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.purple,
-        // This makes the visual density adapt to the platform that you run
-        // the app on. For desktop platforms, the controls will be smaller and
-        // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: MyHomePage(title: 'Stopwatch for DC 프갤 61.77'),
@@ -40,15 +27,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -58,38 +36,26 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   var twoZeroNumberFormatter = new NumberFormat("00");
 
-  int hour = 0;
-  int minute = 0;
-  int second = 0;
-  int centisecond = 0;
-
   String buttonState = '시작';
   Stopwatch stopwatch = new Stopwatch();
   Timer timer;
+
+  List<String> recordedTimes = [];
+  bool isStoppedTimeRecorded = false;
 
   _MyHomePageState() {
     timer = new Timer.periodic(new Duration(milliseconds: 10), _onTimer);
   }
 
-  void updateTime() {
-    if (stopwatch.isRunning) {
-      var elapsedMs = stopwatch.elapsedMilliseconds;
-      centisecond = elapsedMs % 1000 ~/ 10;
-      second = elapsedMs ~/ 1000 % 60;
-      minute = elapsedMs ~/ 1000 ~/ 60 % 60;
-      hour = elapsedMs ~/1000 ~/ 60 ~/ 60;
-    }
-  }
-
   void _onTimer(Timer timer) {
     setState(() {
-      updateTime();
     });
   }
 
   void _onButtonPressed() {
     setState(() {
       if (!stopwatch.isRunning) {
+        isStoppedTimeRecorded = false;
         stopwatch.start();
         buttonState = "정지";
       } else {
@@ -102,8 +68,36 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onResetPressed() {
     setState(() {
       stopwatch.reset();
-      hour = minute = second = centisecond = 0;
+      recordedTimes.clear();
     });
+  }
+
+  String formattedElapsedTime() {
+    var elapsedMs = stopwatch.elapsedMilliseconds;
+    var centisecond = elapsedMs % 1000 ~/ 10;
+    var second = elapsedMs ~/ 1000 % 60;
+    var minute = elapsedMs ~/ 1000 ~/ 60 % 60;
+    var hour = elapsedMs ~/1000 ~/ 60 ~/ 60;
+    var formattedTime = twoZeroNumberFormatter.format(hour)
+        + ':'
+        + twoZeroNumberFormatter.format(minute)
+        + ':'
+        + twoZeroNumberFormatter.format(second)
+        + ':'
+        + twoZeroNumberFormatter.format(centisecond);
+
+    return formattedTime;
+  }
+
+  void _onRecordPressed() {
+    if (stopwatch.isRunning) {
+      recordedTimes.add(formattedElapsedTime());
+    } else {
+      if (!isStoppedTimeRecorded) {
+        recordedTimes.add(formattedElapsedTime());
+        isStoppedTimeRecorded = true;
+      }
+    }
   }
 
   @override
@@ -121,24 +115,29 @@ class _MyHomePageState extends State<MyHomePage> {
           body: Center(
             child: Column(
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Text(twoZeroNumberFormatter.format(hour), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                    Text(':', textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                    Text(twoZeroNumberFormatter.format(minute), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                    Text(':', textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                    Text(twoZeroNumberFormatter.format(second), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                    Text('.', textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                    Text(twoZeroNumberFormatter.format(centisecond), textScaleFactor: 4, style: TextStyle(color: Colors.white)),
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Builder(builder: (context) =>
+                  DefaultTextStyle(
+                    style: DefaultTextStyle.of(context)
+                        .style.apply(fontSizeFactor: 4, color: Colors.white),
+                    child: Row(
+                      children: <Widget>[
+                        Text(formattedElapsedTime()),
+                      ],
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    )
+                  )
                 ),
                 SizedBox(height: 20),
                 Row(
                   children: <Widget>[
                     RaisedButton(
-                      child: Text('$buttonState'),
+                      child: Text(buttonState),
                       onPressed: _onButtonPressed,
+                    ),
+                    SizedBox(width: 10),
+                    RaisedButton(
+                      child: Text('기록'),
+                      onPressed: _onRecordPressed,
                     ),
                     SizedBox(width: 10),
                     RaisedButton(
@@ -147,7 +146,23 @@ class _MyHomePageState extends State<MyHomePage> {
                     )
                   ],
                   mainAxisAlignment: MainAxisAlignment.center,
-
+                ),
+                SizedBox(height: 20),
+                Builder(builder: (context) =>
+                  DefaultTextStyle(
+                    style: DefaultTextStyle.of(context)
+                        .style.apply(fontSizeFactor: 2.5, color: Colors.white),
+                    child: Container(
+                      height: 250,
+                      child: ListView.builder(
+                        itemCount: recordedTimes.length,
+                        itemBuilder: (context, index) => Text(
+                            recordedTimes[recordedTimes.length - index - 1],
+                            textAlign: TextAlign.center
+                        ),
+                      )
+                    )
+                  )
                 )
               ],
               mainAxisAlignment: MainAxisAlignment.center,
